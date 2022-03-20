@@ -2,16 +2,6 @@
 
 VERSION="2.5.1"
 
-if [[ -t 1 && -z ${NOCOLOR+z} ]]; then
-    #colors
-    GRAY="\033[1;30m"
-    CYAN="\033[0;36m"
-    LIGHT_CYAN="\033[1;36m"
-    LIGHT_GREEN="\033[1;32m"
-    DARK_GREY="\033[1;30m"
-    NO_COLOUR="\033[0m"
-fi
-
 #opt parse but for a unknown ammount of arguments
 while [[ "$#" -gt "0" ]]; do
 	case "$1" in
@@ -34,6 +24,17 @@ while [[ "$#" -gt "0" ]]; do
 	esac
 	shift 1
 done
+
+#enable/disable colors
+if [[ -t 1 && -z ${NOCOLOR+z} ]]; then
+    #colors
+    GRAY="\033[1;30m"
+    CYAN="\033[0;36m"
+    LIGHT_CYAN="\033[1;36m"
+    LIGHT_GREEN="\033[1;32m"
+    DARK_GREY="\033[1;30m"
+    NO_COLOUR="\033[0m"
+fi
 
 #utils for logging
 debug(){
@@ -117,7 +118,7 @@ Source_file () {
             if [[ "$line" =~ ^\s?\# ]]; then
                 debug "Skipping commented out line"
                 debug "$line"
-            elif [[ "$line" =~ \s?source.* ]]; then
+            elif [[ "$line" =~ ^\s?source.* ]]; then
                 line=$(echo "$line" | xargs echo)
                 echo "#sourced from: ${line:7}" >> "../$2"
                 Source_file "${line:7}" "$2" "$1" $(($4+1))
