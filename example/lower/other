@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+echo "hello I am lower other"
+echo "now you know about nesting abilities"

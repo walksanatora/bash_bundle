@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+case $1 in
+other)
+shift 1
+echo "hello I am lower other"
+;;
+script)
+shift 1
+echo "Hello I am lower script"
+echo "now try lower other"
+;;
+*)
+echo subcommand not found layer:1 command:"$1" >&2
+esac

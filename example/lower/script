@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+echo "Hello I am lower script"
+echo "now try lower other"

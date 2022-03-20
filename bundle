@@ -98,10 +98,10 @@ fi
 Start_merge () {
     echo "#!/usr/bin/env bash" > "../$1"
     debug "$2 folders deep"
-    if (( $2 > 0 ));then
-        echo "shift 1" >> "../$1"
-        debug "shifted"
-    fi
+#    if (( $2 > 0 ));then
+#        echo "shift 1" >> "../$1"
+#        debug "shifted"
+#    fi
     echo "case \$1 in" >> "../$1"
 }
 
