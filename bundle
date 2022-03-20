@@ -64,8 +64,8 @@ if [[ -n "$h" || -n "$help" ]];then
     echo -e " $DARK_GREY-v$NO_COLOUR/$DARK_GREY-version$NO_COLOUR - prints the version"
     echo -e " $DARK_GREY-DEBUG$NO_COLOUR - prints debug info in dark grey"
     echo -e " $DARK_GREY-NOCOLOR$NO_COLOUR - Disables colors in output"
-    echo -e " $LIGHT_GREEN--folder=<scripts>$NO_COLOUR - folder containg all scripts to merge"
-    echo -e " $LIGHT_GREEN--dest=<scripts.sh>$NO_COLOUR - the output file to have as final output (optional)"
+    echo -e " $LIGHT_GREEN--folder=<example>$NO_COLOUR - folder containg all scripts to merge"
+    echo -e " $LIGHT_GREEN--dest=<example.sh>$NO_COLOUR - the output file to have as final output (optional)"
     echo -e " $LIGHT_GREEN--limit=10$NO_COLOUR - the limit for how many scripts can be 'source'd in a row"
     echo 
     echo -e "$LIGHT_CYAN Example:$NO_COLOUR"
