@@ -2,7 +2,7 @@
 
 VERSION="2.5.1"
 
-if [[ -t 1 ]]; then
+if [[ -t 1 && -z ${NOCOLOR+z} ]]; then
     #colors
     GRAY="\033[1;30m"
     CYAN="\033[0;36m"
