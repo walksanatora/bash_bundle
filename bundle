@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+
+VERSION="2.5.1"
+
+#colors
+GRAY="\033[1;30m"
+CYAN="\033[0;36m"
+LIGHT_CYAN="\033[1;36m"
+LIGHT_GREEN="\033[1;32m"
+DARK_GREY="\033[1;30m"
+NO_COLOUR="\033[0m"
+
+#opt parse but for a unknown ammount of arguments
+while [[ "$#" -gt "0" ]]; do
+	case "$1" in
+		--*=*)
+			key=$(echo "$1" | awk -F "=" '{print $1}')
+			value=$(echo "$1" | awk -F "=" '{print $2}')
+			eval "export '${key: 2}'='$value'"
+		;;
+		--*)
+            if [[ -n "$2" ]];then
+    			eval "export '${1: 2}'='$2'"
+	    		shift 1
+            else
+                eval "export '${1:2}'='1'"
+            fi
+		;;
+		-*)
+			eval "export '${1: 1}'='1'"
+		;;
+	esac
+	shift 1
+done
+
+#utils for logging
+debug(){
+    if [[ -n ${DEBUG+z} ]];then
+        echo -e "$GRAY" "$@" "$NO_COLOUR"
+    fi
+}
+log(){
+    if [[ "$verbosity" -gt "$1" ]]; then
+        shift 1
+        echo -e "$CYAN" "$@" "$NO_COLOUR"
+    fi
+}
+
+#check if need to pring help
+if [[ -n "$h" || -n "$help" ]];then
+    echo -e "$CYAN bundle$NO_COLOUR [options]"
+    echo -e "$CYAN bundle$NO_COLOUR is a tool for merging a folder of bash scripts into a single script"
+    echo
+    echo -e "$LIGHT_CYAN Options:$NO_COLOUR"
+    echo " options come in two flavors and three formats"
+    echo -e "$LIGHT_GREEN long$NO_COLOUR: $LIGHT_GREEN--key value$NO_COLOUR or $LIGHT_GREEN--key=value$NO_COLOUR"
+    echo -e "$DARK_GREY short$NO_COLOUR: $DARK_GREY-option$NO_COLOUR"
+    echo
+    echo -e "$LIGHT_CYAN Currently Implemented Options$NO_COLOUR"
+    echo -e " $DARK_GREY-h$NO_COLOUR/$DARK_GREY-help$NO_COLOUR - shows this message"
+    echo -e " $DARK_GREY-v$NO_COLOUR/$DARK_GREY-version$NO_COLOUR - prints the version"
+    echo -e " $LIGHT_GREEN--folder=<scripts>$NO_COLOUR - folder containg all scripts to merge"
+    echo -e " $LIGHT_GREEN--dest=<scripts.sh>$NO_COLOUR - the output file to have as final output (optional)"
+    echo -e " $LIGHT_GREEN--limit=10$NO_COLOUR - the limit for how many scripts can be 'source'd in a row"
+    echo 
+    echo -e "$LIGHT_CYAN Example:$NO_COLOUR"
+    echo -e " $CYAN./bundle $LIGHT_GREEN--folder='scripts/' --dest='server' --limit=15 $NO_COLOUR"
+    echo " or it can be written a diffrent way and it still works the same"
+    echo -e " $CYAN./bundle $LIGHT_GREEN--folder 'scripts' --dest 'server' --limit 15 $NO_COLOUR"
+    echo " Both do the same thing"
+    exit
+fi
+
+#check if going to print version
+if [[ -n "$v" || -n "$version" ]];then
+    echo "bundle v$VERSION"
+    exit
+fi
+#possibly trim trailing /, but only one more then that and I personally kill you
+if [[ "${folder: -1}" = "/" ]]; then
+    folder=${folder:0:-1}
+fi
+
+#show a quick warning if dest is not set, and exit if folder is not set
+if [[ -z "$folder" ]]; then
+    echo "folder is not set, set it with --folder=<folder>"
+    exit 1
+elif [[ -z "$dest" ]]; then
+    echo "destination is not set, defaulting to '$folder.sh'"
+    dest="$folder.sh"
+fi
+
+#default recursion limit to 10
+if [[ -z "$limit" ]]; then
+    limit=10
+fi
+
+Start_merge () {
+    echo "#!/usr/bin/env bash" > "../$1"
+    debug "$2 folders deep"
+    if (( $2 > 0 ));then
+        echo "shift 1" >> "../$1"
+        debug "shifted"
+    fi
+    echo "case \$1 in" >> "../$1"
+}
+
+Source_file () {
+    if [[ "$4" -gt "$limit" ]]; then
+        echo "Recursion limit exceded, not going any deeper"
+        echo "to change the recursion limit run with '--limit=<number>'"
+    else
+        echo "Sourcing File ($4): $1 -> $3"
+        while read -r line; do
+            if [[ "$line" =~ ^\s?\# ]]; then
+                debug "Skipping commented out line"
+                debug "$line"
+            elif [[ "$line" =~ \s?source.* ]]; then
+                line=$(echo "$line" | xargs echo)
+                echo "#sourced from: ${line:7}" >> "../$2"
+                Source_file "${line:7}" "$2" "$1" $(($4+1))
+            else
+                echo "$line" >> "../$2"
+            fi
+        done < "$1"
+    fi
+}
+
+Merge_itter () {
+    for f in *;do
+        if [[ "${f:0:1}" = "_" ]]; then
+            debug "skipping '$f' as it is a lib"
+            continue
+        fi
+        if [[ -d $f ]];then
+            debug "$f is directory, skipping till next recursion"
+        else
+            if [[ $(echo -n "$f" | tail -c 4 ) == ".tmp" ]] ; then
+                f=${f:0:${#f}-4}
+                debug "removed .tmp extension from $f (as it is a temporary script for a folder)"
+                echo "merging $f into $1"
+                { echo -e "$f)\nshift 1"; sed 1d "$f.tmp"; echo ";;"; } >> "../$1"
+            else
+                debug "'$f' is not a temporary script compiled from a folder"
+                echo "merging '$f' into '$1'"
+                echo "$f)" >> "../$1"
+                echo "shift 1" >> "../$1"
+                Source_file "$f" "$1" "$1" "0"
+                echo ";;" >> "../$1"
+            fi
+        fi
+    done
+}
+
+End_merge () {
+    { echo "*)"; echo "echo subcommand not found layer:$2 command:\"\$1\" >&2"; echo "esac";} >> "../$1"
+}
+
+recursion () {
+    if ls -d ./*/ >/dev/null 2>&1;then
+        n=$1
+        n=$((n + 1))
+        for f in */;do
+            if cd "$f"; then
+                recursion "$n"
+            else
+                echo "Unnable to cd $f, why" >&2
+                continue
+            fi
+        done
+    fi
+    name=$(basename "$(pwd)").tmp
+    debug "Entering layer: $1"
+    Start_merge "$name" "$1"
+    Merge_itter "$name"
+    End_merge "$name" "$1"
+    debug "Exiting layer: $1"
+    if cd ..; then
+        true
+    else
+        echo "Unnable to 'cd ..', Why" >&2
+        exit 1
+    fi
+}
+
+cd "$folder" || exit 1
+recursion 0
+echo "renaming '$folder.tmp' to '$dest'"
+mv "$folder".tmp "$dest"
+chmod +x "$dest"
