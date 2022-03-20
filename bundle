@@ -62,6 +62,8 @@ if [[ -n "$h" || -n "$help" ]];then
     echo -e "$LIGHT_CYAN Currently Implemented Options$NO_COLOUR"
     echo -e " $DARK_GREY-h$NO_COLOUR/$DARK_GREY-help$NO_COLOUR - shows this message"
     echo -e " $DARK_GREY-v$NO_COLOUR/$DARK_GREY-version$NO_COLOUR - prints the version"
+    echo -e " $DARK_GREY-DEBUG$NO_COLOUR - prints debug info in dark grey"
+    echo -e " $DARK_GREY-NOCOLOR$NO_COLOUR - Disables colors in output"
     echo -e " $LIGHT_GREEN--folder=<scripts>$NO_COLOUR - folder containg all scripts to merge"
     echo -e " $LIGHT_GREEN--dest=<scripts.sh>$NO_COLOUR - the output file to have as final output (optional)"
     echo -e " $LIGHT_GREEN--limit=10$NO_COLOUR - the limit for how many scripts can be 'source'd in a row"
@@ -101,10 +103,6 @@ fi
 Start_merge () {
     echo "#!/usr/bin/env bash" > "../$1"
     debug "$2 folders deep"
-#    if (( $2 > 0 ));then
-#        echo "shift 1" >> "../$1"
-#        debug "shifted"
-#    fi
     echo "case \$1 in" >> "../$1"
 }
 
