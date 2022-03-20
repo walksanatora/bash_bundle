@@ -7,3 +7,10 @@ EX: `./bundle --folder=example/ --dest=example.sh`<br>
 
 ## Known Bugs
 files must end with a blank line lest a line be cut off from the bottom
+
+## Features
+1. merge mutiple bash scripts into a mass of case statments
+2. include sourced files (by copy pasting them effectively)<br>
+	A. allow sourced files to source other files
+	B. enforce a source deph limit to prevent infinite loops
+3. skip files prefixed with a `_` so they cannot be directly executed 
