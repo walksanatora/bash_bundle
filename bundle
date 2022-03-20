@@ -42,7 +42,7 @@ debug(){
 log(){
     if [[ "$verbosity" -gt "$1" ]]; then
         shift 1
-        echo -e "$CYAN" "$@" "$NO_COLOUR"
+        echo -e "\t$CYAN" "$@" "$NO_COLOUR"
     fi
 }
 
