@@ -186,6 +186,8 @@ recursion () {
 
 cd "$folder" || exit 1
 recursion 0
+awk 'NR==2{print "_at=\"\$@\""}1' "$folder.tmp" > "$folder.tmp.2"
+mv "$folder.tmp.2" "$folder.tmp"
 echo "renaming '$folder.tmp' to '$dest'"
 mv "$folder".tmp "$dest"
 chmod +x "$dest"
